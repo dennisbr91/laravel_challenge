@@ -8,21 +8,6 @@ use Illuminate\Http\Request;
 
 class TaskViewController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            $projectId = $request->route('project');
-            if ($projectId) {
-                $project = Project::findOrFail($projectId);
-
-                if (!$project->users->contains(Auth::id())) {
-                    return response()->json(['error' => 'No autorizado.'], 403);
-                }
-            }
-
-            return $next($request);
-        });
-    }
 
     public function index($projectId)
     {
@@ -35,7 +20,20 @@ class TaskViewController extends Controller
     {
         $task = Task::findOrFail($taskId);
         $project = Project::findOrFail($projectId);
+
+        // Verificar si la tarea pertenece al proyecto
+        if ($task->project_id !== $project->id) {
+            // Mostrar un error si la tarea no pertenece al proyecto
+            return redirect()->back()->withErrors(['error' => 'La tarea no pertenece a este proyecto.']);
+        }
+
         return view('tasks.form', compact('task', 'project'));
+    }
+
+    public function show($id)
+    {
+        $project = Project::findOrFail($id);
+        return view('projects.show', compact('project'));
     }
 
     public function create($projectId)
@@ -70,7 +68,9 @@ class TaskViewController extends Controller
         $project = Project::findOrFail($projectId);
         $task = Task::findOrFail($taskId);
 
-        $task->update($request->all());
+        $task->title = $request->title;
+        $task->description = $request->description;
+        $task->save();
 
         return view('projects.show', compact('task', 'project'))->with('success', 'Tarea Modificada exitosamente.');
     }

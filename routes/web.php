@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\API\ProjectController;
-use App\Http\Controllers\API\TaskController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectViewController;
 use App\Http\Controllers\TaskViewController;
 use Illuminate\Support\Facades\Route;
@@ -18,9 +15,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth.user')->group(function () {
+Route::get('/', function () {
+    return view('welcome');
+});
 
-    Route::get('/', [ProjectViewController::class, 'index'])->name('projects.list');
+Route::middleware(['auth:sanctum', 'auth.user'])->group(function () {
+
+    Route::get('/projects_list', [ProjectViewController::class, 'index'])->name('projects.list');
     Route::resource('projects', ProjectViewController::class);
 
     // Rutas para tareas dentro de proyectos
@@ -34,5 +35,7 @@ Route::middleware('auth.user')->group(function () {
         Route::resource('tasks', TaskViewController::class)->except(['create', 'store', 'index', 'edit', 'destroy', 'update']);
     });
 });
+
+
 
 require __DIR__.'/auth.php';
